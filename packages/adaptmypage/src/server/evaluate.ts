@@ -26,7 +26,7 @@ const DEFAULT_SITE_CONTEXT =
 
 /**
  * Evaluate a snapshot and return a normalized `VisitorState`.
- * Provider resolution: explicit option → TYPESAFE_API_KEY → AI_GATEWAY_API_KEY → heuristic.
+ * Provider resolution: explicit option → JEV_PROVIDER → TYPESAFE_API_KEY → AI_GATEWAY_API_KEY → OPENROUTER_API_KEY → OPENJEV_API_KEY → heuristic. TypeSafe stays the default.
  */
 export function createEvaluator(options: EvaluateOptions = {}) {
   const provider = resolveProvider(options.provider);

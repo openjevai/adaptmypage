@@ -17,6 +17,8 @@ if (technical.confidence > 0.8) return <TechnicalHero />;
 
 This repository holds the open-source SDK and the landing page that runs it on itself.
 
+> **OpenJEV support:** Jev is built by [TypeSafe](https://typesafe.ai). This fork keeps TypeSafe as the default and adds optional support for [OpenJEV](https://openjev.sh), a free community gateway to the same Jev model — set `OPENJEV_API_KEY` (or `JEV_PROVIDER=openjev`) to use it. Original project: https://github.com/bvicsay/adaptmypage by @bvicsay.
+
 | path | what |
 | --- | --- |
 | [`packages/adaptmypage`](packages/adaptmypage) | The npm package: React hooks, `<Intent>`, vanilla core, server handler, Jev client, heuristic fallback, tests |
@@ -61,6 +63,8 @@ TYPESAFE_API_KEY=…      # direct: https://typesafe.ai
 AI_GATEWAY_API_KEY=…    # https://vercel.com/ai-gateway/models/jev
 # or
 OPENROUTER_API_KEY=…    # https://openrouter.ai/typesafe
+# or
+OPENJEV_API_KEY=…       # https://openjev.sh — free community gateway to Jev
 ```
 
 Without a key the API route answers with a transparent rules-based evaluator and every response is labelled `source: "heuristic"`. The live panel shows which one answered.

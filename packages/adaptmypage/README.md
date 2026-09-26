@@ -65,6 +65,7 @@ export const POST = createIntentHandler({
 TYPESAFE_API_KEY=ts_…        # direct: api.typesafe.ai, model jev-latest
 AI_GATEWAY_API_KEY=vck_…     # via Vercel AI Gateway, model typesafe-ai/jev
 OPENROUTER_API_KEY=sk-or-v1-… # via OpenRouter, model jev-latest
+OPENJEV_API_KEY=oj_…         # via OpenJEV (free community gateway), model openjev
 ```
 
 **3. Use a flag**
@@ -140,7 +141,7 @@ flags.track("opened_pricing_calculator");
 | --- | --- |
 | `siteContext` | One or two sentences about your site and its section ids |
 | `questions` | Extra Jev questions merged over the defaults (`noul`, `choice`, `score`) |
-| `provider` | `{ kind: "typesafe" | "vercel-gateway" | "openrouter" | "heuristic" | "custom" }`; resolved from env when omitted |
+| `provider` | `{ kind: "typesafe" | "vercel-gateway" | "openrouter" | "openjev" | "heuristic" | "custom" }`; resolved from env when omitted |
 | `allowDebug` | Let clients request the raw model exchange |
 | `cors` | `true` or an origin allow-list |
 | `authorize(req, body)` | Return a `Response` to reject or throttle |

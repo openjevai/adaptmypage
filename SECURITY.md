@@ -8,4 +8,4 @@ The browser collector sends a compact snapshot of semantic behavior to the endpo
 
 ## Keys
 
-Model keys (`TYPESAFE_API_KEY`, `AI_GATEWAY_API_KEY`, `OPENROUTER_API_KEY`) are read only inside `adaptmypage/server`. They never reach the browser. `.env` files are gitignored.
+Model keys (`TYPESAFE_API_KEY`, `AI_GATEWAY_API_KEY`, `OPENROUTER_API_KEY`, `OPENJEV_API_KEY`) are read only inside `adaptmypage/server`. They never reach the browser. `.env` files are gitignored.

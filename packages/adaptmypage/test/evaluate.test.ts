@@ -114,19 +114,25 @@ describe("createEvaluator", () => {
 });
 
 describe("resolveProvider", () => {
-  it("prefers TypeSafe, then Vercel gateway, then OpenRouter, then heuristic", async () => {
+  it("prefers TypeSafe, then Vercel gateway, then OpenRouter, then OpenJEV, then heuristic", async () => {
     const { resolveProvider, providerName } = await import("../src/server");
     const saved = { ...process.env };
     delete process.env.TYPESAFE_API_KEY;
     delete process.env.AI_GATEWAY_API_KEY;
     delete process.env.OPENROUTER_API_KEY;
+    delete process.env.OPENJEV_API_KEY;
+    delete process.env.JEV_PROVIDER;
     expect(resolveProvider().kind).toBe("heuristic");
+    process.env.OPENJEV_API_KEY = "oj-test";
+    expect(providerName(resolveProvider())).toBe("openjev:openjev");
     process.env.OPENROUTER_API_KEY = "sk-or-test";
     expect(providerName(resolveProvider())).toBe("openrouter:jev-latest");
     process.env.AI_GATEWAY_API_KEY = "vck-test";
     expect(resolveProvider().kind).toBe("vercel-gateway");
     process.env.TYPESAFE_API_KEY = "ts-test";
     expect(resolveProvider().kind).toBe("typesafe");
+    process.env.JEV_PROVIDER = "openjev";
+    expect(resolveProvider().kind).toBe("openjev"); // explicit env wins over keys
     process.env = saved;
   });
 

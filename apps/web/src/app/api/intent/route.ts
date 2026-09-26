@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 
 /**
  * The same handler a customer would mount. This site is its own first user.
- * Provider is resolved from TYPESAFE_API_KEY → AI_GATEWAY_API_KEY → OPENROUTER_API_KEY → heuristic.
+ * Provider is resolved from TYPESAFE_API_KEY → AI_GATEWAY_API_KEY → OPENROUTER_API_KEY → OPENJEV_API_KEY → heuristic.
  */
 const handler = createIntentHandler({
   siteContext:

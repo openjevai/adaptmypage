@@ -50,6 +50,19 @@ export type JevProvider =
       model?: string;
     }
   | {
+      /**
+       * Route through OpenJEV, a free community gateway to the same Jev model.
+       * Uses `OPENJEV_API_KEY`. TypeSafe stays the default; this is an optional
+       * alternative selected explicitly or when no other provider key is set.
+       */
+      kind: "openjev";
+      apiKey?: string;
+      /** Default `https://api.openjev.sh`. */
+      baseURL?: string;
+      /** Default `openjev`. */
+      model?: string;
+    }
+  | {
       /** Deterministic rules. No network. Used automatically when no key is configured. */
       kind: "heuristic";
     }
@@ -71,12 +84,20 @@ export interface JevClientOptions {
 const env = (k: string): string | undefined =>
   typeof process !== "undefined" && process.env ? process.env[k] : undefined;
 
-/** Pick a provider from the environment: TypeSafe key, Vercel AI Gateway key, OpenRouter key, else heuristic. */
+/**
+ * Pick a provider from the environment. Explicit option wins; then, in order,
+ * TypeSafe key, Vercel AI Gateway key, OpenRouter key, OpenJEV key, else
+ * heuristic. TypeSafe stays the default — anyone with a TypeSafe key sees no
+ * behaviour change. OpenJEV is used only when chosen explicitly via
+ * `JEV_PROVIDER=openjev` or when no other provider key is set.
+ */
 export function resolveProvider(p?: JevProvider): JevProvider {
   if (p) return p;
+  if (env("JEV_PROVIDER") === "openjev") return { kind: "openjev" };
   if (env("TYPESAFE_API_KEY")) return { kind: "typesafe" };
   if (env("AI_GATEWAY_API_KEY")) return { kind: "vercel-gateway" };
   if (env("OPENROUTER_API_KEY")) return { kind: "openrouter" };
+  if (env("OPENJEV_API_KEY")) return { kind: "openjev" };
   return { kind: "heuristic" };
 }
 
@@ -88,6 +109,8 @@ export function providerName(p: JevProvider): string {
       return `vercel-gateway:${p.model ?? "typesafe-ai/jev"}`;
     case "openrouter":
       return `openrouter:${p.model ?? "jev-latest"}`;
+    case "openjev":
+      return `openjev:${p.model ?? "openjev"}`;
     case "heuristic":
       return "heuristic";
     case "custom":
@@ -120,17 +143,19 @@ export function createJevEvaluator(opts: JevClientOptions = {}): Evaluator {
   const timeoutMs = opts.timeoutMs ?? 8000;
   const retries = opts.retries ?? 1;
 
-  const ENV_KEY = { typesafe: "TYPESAFE_API_KEY", "vercel-gateway": "AI_GATEWAY_API_KEY", openrouter: "OPENROUTER_API_KEY" } as const;
+  const ENV_KEY = { typesafe: "TYPESAFE_API_KEY", "vercel-gateway": "AI_GATEWAY_API_KEY", openrouter: "OPENROUTER_API_KEY", openjev: "OPENJEV_API_KEY" } as const;
   const apiKey = provider.apiKey ?? env(ENV_KEY[provider.kind]);
   if (!apiKey) throw new Error(`createJevEvaluator: missing API key for provider ${provider.kind} (set ${ENV_KEY[provider.kind]})`);
 
   const baseURL =
     provider.kind === "typesafe"
       ? (provider.baseURL ?? "https://api.typesafe.ai").replace(/\/+$/, "")
-      : provider.kind === "vercel-gateway"
-        ? "https://ai-gateway.vercel.sh/typesafe"
-        : "https://openrouter.ai/api";
-  const DEFAULT_MODEL = { typesafe: "jev-latest", "vercel-gateway": "typesafe-ai/jev", openrouter: "jev-latest" } as const;
+      : provider.kind === "openjev"
+        ? (provider.baseURL ?? "https://api.openjev.sh").replace(/\/+$/, "")
+        : provider.kind === "vercel-gateway"
+          ? "https://ai-gateway.vercel.sh/typesafe"
+          : "https://openrouter.ai/api";
+  const DEFAULT_MODEL = { typesafe: "jev-latest", "vercel-gateway": "typesafe-ai/jev", openrouter: "jev-latest", openjev: "openjev" } as const;
   const model = provider.model ?? DEFAULT_MODEL[provider.kind];
   const url = `${baseURL}/v1/systemone`;
   const extraHeaders: Record<string, string> =
@@ -157,6 +182,7 @@ export function createJevEvaluator(opts: JevClientOptions = {}): Evaluator {
           json = text;
         }
         if (!res.ok) {
+          // 408 timeout, 429 rate-limited, 5xx server error (OpenJEV returns 503 when unavailable, TypeSafe 529 overload)
           const retryable = res.status === 408 || res.status === 429 || res.status >= 500;
           if (retryable && attempt < retries) {
             attempt += 1;
